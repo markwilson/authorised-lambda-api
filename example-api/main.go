@@ -1,3 +1,4 @@
+// package main contains a basic API Gateway->Lambda handler with assumed user authorisation
 package main
 
 import (
@@ -6,10 +7,12 @@ import (
 	"net/http"
 )
 
+// main starts the Lambda handler
 func main() {
 	lambda.Start(handler)
 }
 
+// handler receives API Gateway requests and returns a response dynamic to the user
 func handler(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	output, ok := r.RequestContext.Authorizer["principalId"].(string)
 	if !ok {

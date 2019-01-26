@@ -17,6 +17,9 @@ deploy: check-jwt-secret-signing-key build
 		--parameter-overrides JWTSecretSigningKey="${JWT_SECRET_SIGNING_KEY}" \
 		--capabilities CAPABILITY_IAM
 
+destroy-service:
+	aws cloudformation delete-stack --stack-name authorised-lambda-api
+
 .PHONY: get-token
 get-token:
 	@${MAKE} get-lambda-name-for-get-token | xargs -I % aws lambda invoke --function-name % out.txt > /dev/null
