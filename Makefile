@@ -6,11 +6,11 @@ build:
 local: build
 	sam local start-api
 
-deploy: check-jwt-secret-signing-key build
+deploy: check-s3-bucket check-jwt-secret-signing-key build
 	aws cloudformation package \
 		--template-file template.yml \
 		--output-template-file packaged-template.yml \
-		--s3-bucket markwilson-authorisedlambdaapi
+		--s3-bucket ${S3_BUCKET}
 	aws cloudformation deploy \
 		--template-file packaged-template.yml \
 		--stack-name authorised-lambda-api \
@@ -43,4 +43,9 @@ endif
 check-token:
 ifndef TOKEN
 	$(error "TOKEN is missing")
+endif
+
+check-s3-bucket:
+ifndef S3_BUCKET
+	$(error "S3_BUCKET is missing - create this manually before deploying")
 endif
