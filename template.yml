@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  JWTSecretSigningKey:
+    Type: String
+    Description: Secret signing key for JWT
+Resources:
+  ExampleApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: TokenAuth
+        Authorizers:
+          TokenAuth:
+            FunctionArn: !GetAtt VerifyToken.Arn
+  SensitiveFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: example-api/example-api
+      Tracing: Active
+      Events:
+        HttpGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ExampleApi
+            Path: '/'
+            Method: get
+  VerifyToken:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: verify-token/verify-token
+      Tracing: Active
+      Environment:
+        Variables:
+          JWT_SECRET_SIGNING_KEY: !Ref JWTSecretSigningKey
+  GetToken:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: get-token/get-token
+      Tracing: Active
+      Environment:
+        Variables:
+          JWT_SECRET_SIGNING_KEY: !Ref JWTSecretSigningKey
+Outputs:
+  SensitiveFunctionUrl:
+    Description: "URL path to call SensitiveFunction"
+    Value: !Sub 'https://${ExampleApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/'
+  GetTokenLambda:
+    Description: "GetToken lambda name"
+    Value: !Ref GetToken
