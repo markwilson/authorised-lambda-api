@@ -31,6 +31,7 @@ func handler(r events.APIGatewayCustomAuthorizerRequest) (events.APIGatewayCusto
 
 	if err == nil && token.Valid {
 		return events.APIGatewayCustomAuthorizerResponse{
+			// this user could be anything - if your API needs to have some form of identification, change this
 			PrincipalID: "test user",
 			PolicyDocument: events.APIGatewayCustomAuthorizerPolicy{
 				Version: "2012-10-17",
@@ -39,6 +40,11 @@ func handler(r events.APIGatewayCustomAuthorizerRequest) (events.APIGatewayCusto
 					Effect:   "Allow",
 					Resource: []string{r.MethodArn},
 				}},
+			},
+			// this data gets sent over to the API lambda in it's request context
+			Context: map[string]interface{}{
+				"extraField1": "some information",
+				"extraField2": "some more information",
 			},
 		}, nil
 	}
