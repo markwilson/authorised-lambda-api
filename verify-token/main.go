@@ -21,6 +21,7 @@ func main() {
 
 // handler receives the API Gateway custom authorizer request and checks it is valid
 func handler(r events.APIGatewayCustomAuthorizerRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
+	// parse the token provided by the API Gateway event
 	token, err := jwt.Parse(r.AuthorizationToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -28,13 +29,13 @@ func handler(r events.APIGatewayCustomAuthorizerRequest) (events.APIGatewayCusto
 
 		return jwtSecretSigningKey, nil
 	})
-
 	if err == nil && token.Valid {
 		return events.APIGatewayCustomAuthorizerResponse{
 			// this user could be anything - if your API needs to have some form of identification, change this
 			PrincipalID: "test user",
 			PolicyDocument: events.APIGatewayCustomAuthorizerPolicy{
 				Version: "2012-10-17",
+				// allow the invocation of the Lambda requested
 				Statement: []events.IAMPolicyStatement{{
 					Action:   []string{"execute-api:Invoke"},
 					Effect:   "Allow",
@@ -49,6 +50,7 @@ func handler(r events.APIGatewayCustomAuthorizerRequest) (events.APIGatewayCusto
 		}, nil
 	}
 
+	// deny access due to an invalid Authorization header
 	return events.APIGatewayCustomAuthorizerResponse{
 		PolicyDocument: events.APIGatewayCustomAuthorizerPolicy{
 			Version: "2012-10-17",
